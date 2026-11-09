@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Analgesics lab: opioid and non-opioid</title>
+<style>
+  :root{
+    --blush:#fff5f8; --sakura:#f9d5e1; --petal:#f2a7c0; --rose:#c2457a; --op:#d9468a; --deep:#8a2553;
+    --plum:#3b1f2e; --muted:#7a5568; --blue:#3b6fd4; --blue-soft:#dbe7fc; --teal:#1f9d8f; --amber:#f0a63a; --red:#d94a4a;
+    --serif:"Iowan Old Style","Palatino Linotype",Georgia,serif;
+    --sans:-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--blush);color:var(--plum);font-family:var(--sans);line-height:1.5}
+  main{max-width:900px;margin:0 auto;padding:26px 16px 48px}
+  .eyebrow{font-size:.78rem;letter-spacing:.14em;text-transform:uppercase;color:var(--rose);font-weight:700;margin:0 0 6px}
+  h1{font-family:var(--serif);font-weight:600;font-size:clamp(1.6rem,5vw,2.4rem);line-height:1.12;margin:0 0 6px}
+  .lede{color:var(--muted);margin:0 0 16px;max-width:62ch}
+  h2{font-family:var(--serif);font-size:1.15rem;margin:0 0 8px}
+
+  .chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+  .chips button{flex:1 1 170px;border:2px solid var(--sakura);background:#fff;color:var(--plum);font:inherit;font-weight:600;
+    padding:9px 14px;border-radius:999px;cursor:pointer;text-align:center}
+  .chips button small{display:block;font-weight:500;color:var(--muted);font-size:.78rem}
+  .chips button[aria-pressed="true"]{background:var(--rose);border-color:var(--rose);color:#fff}
+  .chips button[aria-pressed="true"] small{color:#ffe3ee}
+  button:focus-visible,[role="button"]:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+
+  .goal{background:#fff;border:2px solid var(--sakura);border-radius:16px;padding:10px 14px;margin-bottom:12px;font-size:.95rem}
+  .goal b{color:var(--rose)}
+
+  .stage{position:relative;background:#fff;border:3px solid var(--sakura);border-radius:24px;overflow:hidden;box-shadow:0 14px 40px -20px rgba(194,69,122,.5)}
+  #scene{display:block;width:100%;height:auto;touch-action:manipulation}
+  .stagebar{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;padding:10px 14px;background:#fff;border-top:2px solid var(--sakura)}
+  .primary{border:0;background:var(--rose);color:#fff;font:inherit;font-weight:700;padding:11px 22px;border-radius:999px;cursor:pointer}
+  .primary:hover:not(:disabled){background:#a93668}
+  .ghost{border:2px solid var(--sakura);background:#fff;color:var(--plum);font:inherit;font-weight:600;padding:9px 16px;border-radius:999px;cursor:pointer}
+  button:disabled{opacity:.45;cursor:not-allowed}
+  .hint{color:var(--muted);font-size:.85rem}
+
+  .info{margin-top:12px;background:var(--blue-soft);border-radius:16px;padding:12px 16px;min-height:76px}
+  .info b{display:block;margin-bottom:2px}
+
+  .grid{display:grid;grid-template-columns:1.1fr .9fr;gap:14px;margin-top:14px}
+  @media(max-width:720px){.grid{grid-template-columns:1fr}}
+  .panel{background:#fff;border:2px solid var(--sakura);border-radius:20px;padding:14px 16px}
+
+  .drug{display:grid;grid-template-columns:34px 1fr auto;gap:10px;align-items:center;padding:10px 0;border-top:1px solid var(--sakura)}
+  .drug:first-of-type{border-top:0}
+  .dot{width:30px;height:30px;border-radius:50%;display:inline-block}
+  .dot.op{background:var(--op)} .dot.ns{background:var(--blue)} .dot.ap{background:var(--amber)} .dot.nl{background:var(--teal)}
+  .drug h3{margin:0;font-size:1rem}
+  .drug p{margin:0;font-size:.84rem;color:var(--muted)}
+  .tagc{display:inline-block;font-size:.72rem;font-weight:700;padding:0 8px;border-radius:999px;margin-left:6px;vertical-align:middle}
+  .tagc.op{background:var(--sakura);color:#8a2553}.tagc.ns{background:var(--blue-soft);color:#2f5fc0}.tagc.ap{background:#fdebc8;color:#8f5606}.tagc.nl{background:#d3f1ed;color:#146a60}
+  .give{border:2px solid var(--rose);background:#fff;color:var(--rose);font:inherit;font-weight:700;padding:8px 14px;border-radius:999px;cursor:pointer;white-space:nowrap}
+  .give:hover:not(:disabled){background:var(--rose);color:#fff}
+  .give.ns{border-color:var(--blue);color:var(--blue)} .give.ns:hover:not(:disabled){background:var(--blue);color:#fff}
+  .give.ap{border-color:#c98410;color:#8f5606} .give.ap:hover:not(:disabled){background:var(--amber);color:#fff}
+  .give.nl{border-color:var(--teal);color:#146a60} .give.nl:hover:not(:disabled){background:var(--teal);color:#fff}
+
+  .gauge{margin-bottom:12px}
+  .gh{display:flex;justify-content:space-between;font-size:.9rem;font-weight:600}
+  .track{height:10px;border-radius:999px;background:var(--sakura);overflow:hidden;margin:4px 0 2px}
+  .track i{display:block;height:100%;width:0;border-radius:999px;background:var(--rose);transition:width .5s ease,background .3s}
+  .gauge small{color:var(--muted);font-size:.8rem}
+  .pill{display:inline-block;font-size:.75rem;font-weight:700;padding:1px 10px;border-radius:999px;color:#fff;margin-left:6px}
+  .ok{background:var(--teal)} .warn{background:var(--amber);color:#3b1f2e} .bad{background:var(--red)}
+
+  .alerts{margin-top:14px}
+  .alert{border-radius:12px;padding:8px 12px;margin-bottom:8px;font-size:.92rem}
+  .alert.bad{background:#fde3e3;color:#7a1f1f}.alert.warn{background:#fdf0d4;color:#6b4506}
+  .alert.ok{background:#d9f3ef;color:#0f5a51}.alert.tip{background:var(--sakura);color:#6a1f42}
+  .foot{margin-top:14px;font-size:.82rem;color:var(--muted);text-align:center}
+
+  /* scene */
+  .lbl rect{fill:#fff;fill-opacity:.95;stroke:#e8a9c0;stroke-width:2}
+  .lbl text{font:700 16px var(--sans);fill:#3b1f2e}
+  .hs{cursor:pointer}
+  .hs circle.badge{fill:#fff;stroke:#c2457a;stroke-width:2.5}
+  .hs text{font:700 15px var(--serif);fill:#c2457a;text-anchor:middle;dominant-baseline:central;pointer-events:none}
+  .hs:hover circle.badge{fill:#fde3ee}
+  .ringfx{fill:none;stroke-width:4;transform-box:fill-box;transform-origin:center;animation:ringfx .9s ease-out forwards}
+  @keyframes ringfx{from{transform:scale(.6);opacity:.95}to{transform:scale(2.6);opacity:0}}
+  .throb{transform-box:fill-box;transform-origin:center;animation:throb .5s ease-in-out 3}
+  @keyframes throb{50%{transform:scale(1.06)}}
+  .pop{transform-box:fill-box;transform-origin:center;animation:pop .35s both}
+  @keyframes pop{from{transform:scale(0)}to{transform:scale(1)}}
+  .pmk{transform-box:fill-box;transform-origin:center;animation:pmk 1.2s ease-in-out infinite}
+  @keyframes pmk{50%{transform:scale(1.5);opacity:.2}}
+  .dh{transform-box:fill-box;transform-origin:center;animation:pmk 1.6s ease-in-out infinite}
+  .tr{animation:trfade .45s ease-out forwards}
+  @keyframes trfade{from{opacity:.55}to{opacity:0}}
+  .wince{transform-box:fill-box;transform-origin:50% 100%;animation:wince .7s ease-in-out}
+  @keyframes wince{0%,100%{transform:none}15%{transform:translateX(calc(-3px*var(--w,1))) rotate(calc(-3deg*var(--w,1)))}30%{transform:translateX(calc(3px*var(--w,1))) rotate(calc(3deg*var(--w,1)))}50%{transform:translateX(calc(-2px*var(--w,1))) rotate(calc(-2deg*var(--w,1)))}70%{transform:translateX(calc(2px*var(--w,1))) rotate(calc(2deg*var(--w,1)))}}
+  .breathe{transform-box:fill-box;transform-origin:50% 100%;animation:breathe 3.75s ease-in-out infinite}
+  @keyframes breathe{50%{transform:scale(1.04,1.06)}}
+  .primary.nudge{animation:nudge 1.8s ease-out infinite}
+  @keyframes nudge{0%{box-shadow:0 0 0 0 rgba(194,69,122,.5)}70%,100%{box-shadow:0 0 0 14px rgba(194,69,122,0)}}
+  @media (prefers-reduced-motion:reduce){.ringfx,.throb,.pop,.pmk,.dh,.tr,.wince,.breathe,.primary.nudge{animation:none!important}.track i{transition:none}}
+</style>
+</head>
+<body>
+<main>
+  <p class="eyebrow">Pharmacology · Interactive lab</p>
+  <h1>Analgesics lab: you control the signal</h1>
+  <p class="lede">Pick a patient, send a pain signal, then give drugs and watch where each one acts and what it costs. Nothing moves until you tell it to.</p>
+
+  <div class="chips" id="scen" role="group" aria-label="Choose a patient">
+    <button type="button" data-k="mild" aria-pressed="false">Headache<small>mild pain, 3 / 10</small></button>
+    <button type="button" data-k="moderate" aria-pressed="false">Sprained ankle<small>moderate pain, 5 / 10</small></button>
+    <button type="button" data-k="severe" aria-pressed="true">After surgery<small>severe pain, 8 / 10</small></button>
+  </div>
+  <div class="goal" id="goal" aria-live="polite"></div>
+
+  <div class="stage">
+    <svg id="scene" viewBox="0 0 640 380" role="img" aria-label="A patient with pain, and the pain pathway from the injury to the spinal cord synapse to the brain">
+      <defs>
+        <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fffafc"/><stop offset="1" stop-color="#fdeaf1"/></linearGradient>
+        <filter id="glow" x="-150%" y="-150%" width="400%" height="400%"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+        <path id="pgs" d="M0 -8 L2.6 -2.6 L8 0 L2.6 2.6 L0 8 L-2.6 2.6 L-8 0 L-2.6 -2.6Z" fill="#ee5b7b"/>
+        <g id="opi"><circle r="10" fill="#d9468a"/><circle r="3.8" fill="#fff"/><circle r="10" fill="none" stroke="#fff" stroke-opacity=".55" stroke-width="2"/></g>
+        <g id="nal"><circle r="10" fill="#1f9d8f"/><path d="M-4 0 L-1 3.5 L5 -3.5" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></g>
+        <g id="nsaid"><rect x="-8" y="-17" width="16" height="34" rx="8" fill="#3b6fd4"/><path d="M-8 0 V-9 a8 8 0 0 1 16 0 V0Z" fill="#fff" opacity=".55"/></g>
+        <g id="apap"><rect x="-18" y="-9" width="36" height="18" rx="9" fill="#f0a63a"/><path d="M0 -9 H9 a9 9 0 0 1 0 18 H0Z" fill="#fff" opacity=".7"/></g>
+        <g id="brainShape">
+          <path d="M378 262 C376 300 384 330 392 352 L424 352 C424 320 420 290 416 262Z" fill="#f7c4d4" stroke="#e07a96" stroke-width="6" stroke-linejoin="round"/>
+          <ellipse cx="462" cy="282" rx="58" ry="36" fill="#f4b8ca" stroke="#e07a96" stroke-width="6"/>
+          <g fill="none" stroke="#e07a96" stroke-width="3.5" opacity=".6" stroke-linecap="round"><path d="M420 276 q42 10 90 -4"/><path d="M424 292 q40 10 82 -2"/><path d="M434 306 q30 6 58 -2"/></g>
+          <path d="M214 214 C196 138 252 72 340 64 C432 52 520 92 528 172 C532 222 506 252 468 256 C440 260 420 262 402 262 C382 290 330 296 286 282 C242 268 220 246 214 214Z" style="fill:var(--bf,#fbd6e0)" stroke="#e07a96" stroke-width="6" stroke-linejoin="round"/>
+          <g fill="none" stroke="#e07a96" stroke-width="4.5" opacity=".6" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M364 70 C372 110 392 140 388 176"/>
+            <path d="M262 214 C310 206 360 214 420 190 C446 180 468 186 500 178"/>
+            <path d="M250 150 q30 -22 60 -4 q22 14 40 -6"/><path d="M280 118 q36 -16 62 6"/>
+            <path d="M412 100 q34 -6 56 22 q14 18 40 16"/><path d="M404 140 q30 10 50 -8 q16 -12 36 4"/>
+            <path d="M300 246 q38 10 74 -4"/><path d="M420 224 q26 14 56 6"/>
+          </g>
+        </g>
+      </defs>
+
+      <rect width="640" height="380" fill="url(#bg)"/>
+
+      <!-- tissue -->
+      <rect x="10" y="110" width="190" height="240" rx="28" fill="#ffeef2" stroke="#f7b6ca" stroke-width="3"/>
+      <clipPath id="tclip"><rect x="10" y="110" width="190" height="240" rx="28"/></clipPath>
+      <g clip-path="url(#tclip)" fill="#ffe3ea" stroke="#f2b0c3" stroke-width="2.5">
+        <ellipse cx="176" cy="286" rx="28" ry="36"/><ellipse cx="6" cy="280" rx="24" ry="34"/><ellipse cx="48" cy="342" rx="38" ry="20"/><ellipse cx="128" cy="346" rx="34" ry="20"/>
+        <g fill="#f7c3d2" stroke="none"><circle cx="180" cy="292" r="9"/><circle cx="14" cy="284" r="8"/><circle cx="40" cy="344" r="7"/><circle cx="132" cy="348" r="7"/></g>
+      </g>
+      <ellipse cx="85" cy="272" rx="62" ry="46" fill="#ffc4d2" stroke="#e07a96" stroke-width="3.5"/>
+      <circle cx="70" cy="284" r="18" fill="#f7a3b9" stroke="#e07a96" stroke-width="2.5"/>
+      <polyline id="zig" points="128,240 138,252 130,260 142,272" fill="none" stroke="#d94a4a" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+      <g stroke="#8a73d8" stroke-width="2" fill="#b9a7f0"><rect x="66" y="208" width="14" height="28" rx="5"/><rect x="90" y="208" width="14" height="28" rx="5"/></g>
+
+      <!-- nerve ending + axon -->
+      <g fill="none" stroke="#f2a7c0" stroke-linecap="round">
+        <path d="M150 178 C185 178 200 190 238 190" stroke-width="8"/>
+        <path d="M150 178 Q130 165 112 150" stroke-width="6"/><path d="M150 178 H104" stroke-width="6"/><path d="M150 178 Q132 192 114 206" stroke-width="6"/>
+      </g>
+      <g id="bulbs" fill="#f2a7c0"><circle cx="112" cy="150" r="8"/><circle cx="104" cy="178" r="8"/><circle cx="114" cy="206" r="8"/></g>
+
+      <!-- cord -->
+      <path d="M235 80 C290 50 400 50 455 95 C482 130 482 250 455 285 C400 330 290 330 235 295 C212 265 212 105 235 80Z" fill="#ffeaf0" stroke="#f7b6ca" stroke-width="3" opacity=".85"/>
+      <path d="M440 168 C466 158 485 138 498 122" stroke="#8fb0f0" stroke-width="8" fill="none" stroke-linecap="round"/>
+      <g transform="translate(292 98)">
+        <circle r="25" fill="#fff6f8" stroke="#e07a96" stroke-width="2.5"/>
+        <path d="M-3 -2 C-6 -10 -12 -16 -15 -16 C-17 -16 -16 -11 -12 -6 C-17 -4 -19 2 -17 8 C-15 13 -8 14 -3 9 L3 9 C8 14 15 13 17 8 C19 2 17 -4 12 -6 C16 -11 17 -16 15 -16 C12 -16 6 -10 3 -2Z" fill="#f3a9c0" stroke="#d98aa6" stroke-width="1.5" stroke-linejoin="round"/>
+        <circle cx="0" cy="1" r="1.8" fill="#fff"/><circle class="dh" cx="14" cy="-12" r="4" fill="#f0584f"/>
+      </g>
+      <ellipse cx="285" cy="190" rx="50" ry="44" fill="#ffd9e3" stroke="#d98aa6" stroke-width="3.5"/>
+      <ellipse id="post" cx="415" cy="190" rx="46" ry="58" fill="#e9eefb" stroke="#8a97c9" stroke-width="3.5"/>
+      <circle cx="425" cy="196" r="17" fill="#cfd9f5" stroke="#8a97c9" stroke-width="2.5"/>
+      <g fill="#ffe9ef" stroke="#d9468a" stroke-width="2"><circle id="ves0" cx="270" cy="178" r="11"/><circle id="ves1" cx="292" cy="206" r="11"/><circle id="ves2" cx="256" cy="204" r="11"/></g>
+      <g fill="none" stroke="#7a5568" stroke-width="3.5" stroke-linecap="round"><path d="M329 150 Q315 162 329 174"/><path d="M329 206 Q315 218 329 230"/></g>
+      <g fill="none" stroke="#5b6bb0" stroke-width="3.5" stroke-linecap="round"><path d="M366 148 Q382 160 366 172"/><path d="M360 178 Q376 190 360 202"/><path d="M366 208 Q382 220 366 232"/></g>
+      <g stroke="#8a73d8" stroke-width="2" fill="#b9a7f0"><rect x="324" y="170" width="22" height="14" rx="4"/><rect x="324" y="196" width="22" height="14" rx="4"/></g>
+
+      <!-- brain -->
+      <g id="brainWrap"><use id="brain" href="#brainShape" transform="translate(414 39) scale(.4)"/></g>
+      <ellipse id="halo" cx="560" cy="118" rx="70" ry="58" fill="none" stroke="#f0a63a" stroke-width="5" opacity="0"/>
+
+      <!-- docked drug visuals -->
+      <g id="plug" style="display:none"><g transform="translate(85 222)"><use href="#nsaid"/></g><text id="plugN" x="104" y="248" font-size="15" font-weight="700" fill="#3b6fd4"></text></g>
+      <g id="dockO" style="display:none">
+        <rect id="gate" x="326" y="184" width="18" height="12" rx="4" fill="#d9468a"/>
+        <g id="opi1" style="display:none" transform="translate(333 162)"><use href="#opi"/></g>
+        <g id="opi2" style="display:none" transform="translate(333 218)"><use href="#opi"/></g>
+        <text id="opiN" x="296" y="262" font-size="15" font-weight="700" fill="#d9468a" text-anchor="middle"></text>
+      </g>
+      <text id="apapN" x="560" y="198" font-size="15" font-weight="700" fill="#8f5606" text-anchor="middle"></text>
+
+      <!-- patient -->
+      <g id="patient" transform="translate(548 236) scale(1.1)">
+        <g id="pbody">
+          <g stroke="#a9b6dd" stroke-width="9" stroke-linecap="round" fill="none"><path d="M-6 64 L-7 97"/><path d="M6 64 L7 97"/></g>
+          <g fill="#7f8fc0"><ellipse cx="-10" cy="102" rx="8" ry="4"/><ellipse cx="10" cy="102" rx="8" ry="4"/></g>
+          <g id="chest" class="breathe">
+            <g stroke="#cddcf8" stroke-width="7" stroke-linecap="round" fill="none"><path d="M-16 34 L-25 56"/><path d="M16 34 L25 56"/></g>
+            <g class="skin" fill="#f6d3bd" stroke="#c9967a" stroke-width="1.5"><circle cx="-25" cy="60" r="4"/><circle cx="25" cy="60" r="4"/></g>
+            <rect class="skin" x="-4" y="22" width="8" height="9" fill="#f6d3bd"/>
+            <rect x="-16" y="27" width="32" height="40" rx="12" fill="#cddcf8" stroke="#8a97c9" stroke-width="2"/>
+            <g id="site-abd" style="display:none"><rect x="-9" y="45" width="18" height="12" rx="2" fill="#fff" stroke="#c2457a" stroke-width="1.5"/><path d="M-9 51 H9" stroke="#e8a9c0" stroke-width="1.5"/><circle class="pmk pcol" cx="0" cy="51" r="11" fill-opacity=".45"/><circle class="pcol" cx="0" cy="51" r="5" stroke="#fff" stroke-width="1.5"/></g>
+          </g>
+          <circle id="face" class="skin" cx="0" cy="13" r="12" fill="#f6d3bd" stroke="#c9967a" stroke-width="2"/>
+          <path d="M-12 11 a12 12 0 0 1 24 0 q-12 -6 -24 0Z" fill="#6b4a3a"/>
+          <g id="eyes" fill="#3b1f2e"><circle cx="-4.5" cy="14" r="1.4"/><circle cx="4.5" cy="14" r="1.4"/></g>
+          <path id="mouth" d="M-4 19.5 L4 19.5" fill="none" stroke="#3b1f2e" stroke-width="1.8" stroke-linecap="round"/>
+          <g id="site-head" style="display:none"><circle class="pmk pcol" cx="0" cy="6" r="8" fill-opacity=".45"/><circle class="pcol" cx="0" cy="6" r="4" stroke="#fff" stroke-width="1.5"/></g>
+          <g id="site-ankle" style="display:none"><circle class="pmk pcol" cx="-7" cy="92" r="11" fill-opacity=".45"/><circle class="pcol" cx="-7" cy="92" r="5" stroke="#fff" stroke-width="1.5"/></g>
+        </g>
+      </g>
+
+      <!-- hidden motion paths -->
+      <g visibility="hidden" fill="none">
+        <path id="pS1" d="M104 178 H150 C185 178 200 190 238 190 L335 190"/>
+        <path id="pS2" d="M369 190 L400 190 L440 168 C466 158 485 138 498 122"/>
+        <path id="pg1" d="M85 206 C80 182 95 160 108 152"/><path id="pg2" d="M85 206 C86 192 92 182 100 178"/><path id="pg3" d="M85 206 C98 204 106 204 112 206"/>
+      </g>
+
+      <g id="labels"></g>
+      <g id="fx"></g>
+      <g id="bubble" style="display:none"><rect id="bubR" rx="14" fill="#fff" stroke="#c2457a" stroke-width="2.5"/><text id="bubT" font-size="16" font-weight="700" fill="#3b1f2e" text-anchor="middle"></text></g>
+
+      <!-- hotspots -->
+      <g class="hs" role="button" tabindex="0" data-k="injury" aria-label="About the injury site"><circle cx="28" cy="130" r="22" fill="transparent"/><circle class="badge" cx="28" cy="130" r="11"/><text x="28" y="131">i</text></g>
+      <g class="hs" role="button" tabindex="0" data-k="cox" aria-label="About the COX enzyme"><circle cx="120" cy="222" r="22" fill="transparent"/><circle class="badge" cx="120" cy="222" r="11"/><text x="120" y="223">i</text></g>
+      <g class="hs" role="button" tabindex="0" data-k="synapse" aria-label="About the spinal cord synapse"><circle cx="350" cy="120" r="22" fill="transparent"/><circle class="badge" cx="350" cy="120" r="11"/><text x="350" y="121">i</text></g>
+      <g class="hs" role="button" tabindex="0" data-k="patient" aria-label="About where the pain starts on the patient"><circle cx="612" cy="252" r="22" fill="transparent"/><circle class="badge" cx="612" cy="252" r="11"/><text x="612" y="253">i</text></g>
+      <g class="hs" role="button" tabindex="0" data-k="brain" aria-label="About the brain"><circle cx="612" cy="60" r="22" fill="transparent"/><circle class="badge" cx="612" cy="60" r="11"/><text x="612" y="61">i</text></g>
+    </svg>
+    <div class="stagebar">
+      <button class="primary" id="send" type="button">Send pain signal</button>
+      <span class="hint">Tap the <b>i</b> badges in the picture to learn what happens at each spot.</span>
+      <button class="ghost" id="reset" type="button">Reset patient</button>
+    </div>
+  </div>
+
+  <div class="info" id="info" aria-live="polite"><b>How to play</b>1) Send a pain signal. 2) Give a drug and send it again. 3) Watch the monitors. Try each patient with each drug class.</div>
+
+  <div class="grid">
+    <section class="panel" aria-label="Drug tray">
+      <h2>Drug tray</h2>
+      <div class="drug">
+        <span class="dot op"></span>
+        <div><h3>Morphine <span class="tagc op">Opioid</span></h3><p>Acts at the spinal cord and brain. Doses given: <b id="cO">0</b></p></div>
+        <button class="give" id="gO" type="button">Give dose</button>
+      </div>
+      <div class="drug">
+        <span class="dot ns"></span>
+        <div><h3>Ibuprofen <span class="tagc ns">NSAID</span></h3><p>Acts at the injury (COX). 400 mg per dose. Doses given: <b id="cN">0</b></p></div>
+        <button class="give ns" id="gN" type="button">Give dose</button>
+      </div>
+      <div class="drug">
+        <span class="dot ap"></span>
+        <div><h3>Acetaminophen <span class="tagc ap">Non-opioid</span></h3><p>Acts mainly in the CNS. 1,000 mg per dose. Doses given: <b id="cA">0</b></p></div>
+        <button class="give ap" id="gA" type="button">Give dose</button>
+      </div>
+      <div class="drug">
+        <span class="dot nl"></span>
+        <div><h3>Naloxone <span class="tagc nl">Antidote</span></h3><p id="nlNote">Reverses opioids. Available once an opioid has been given.</p></div>
+        <button class="give nl" id="gL" type="button" disabled>Give</button>
+      </div>
+    </section>
+
+    <section class="panel" aria-label="Patient monitors">
+      <h2>Patient monitors</h2>
+      <div class="gauge"><div class="gh"><span>Pain</span><b id="painNum"></b></div><div class="track"><i id="painBar"></i></div><small id="painTxt"></small></div>
+      <div class="gauge"><div class="gh"><span>Respiratory rate <span id="rrPill" class="pill ok">Normal</span></span><b id="rrNum"></b></div><div class="track"><i id="rrBar"></i></div><small id="sedTxt"></small></div>
+      <div class="gauge"><div class="gh"><span>Stomach and kidney strain <span id="stPill" class="pill ok">Low</span></span><b id="stNum"></b></div><div class="track"><i id="stBar"></i></div></div>
+      <div class="gauge"><div class="gh"><span>Acetaminophen today <span id="lvPill" class="pill ok">Safe</span></span><b id="lvNum"></b></div><div class="track"><i id="lvBar"></i></div><small>Daily maximum 4 g (many facilities use 3 g)</small></div>
+    </section>
+  </div>
+
+  <div class="alerts" id="alerts" aria-live="polite"></div>
+  <p class="foot">Teaching simulation only. It is simplified and is not dosing guidance. Confirm doses and precautions with your drug reference and facility protocol.</p>
+</main>
+
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  const NS = 'http://www.w3.org/2000/svg';
+  const el = (n, a, p) => { const e = document.createElementNS(NS, n); for (const k in (a || {})) if (a[k] != null) e.setAttribute(k, a[k]); if (p) p.appendChild(e); return e; };
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const ease = p => p < .5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2;
+  function tw(ms, fn){
+    if (reduce) ms = 1;
+    return new Promise(res => { let t0 = null;
+      const f = t => { if (t0 === null) t0 = t; const p = Math.min(1, (t - t0) / ms); fn(p); if (p < 1) requestAnimationFrame(f); else res(); };
+      requestAnimationFrame(f);
+    });
+  }
+  const sleep = ms => new Promise(r => setTimeout(r, reduce ? 1 : ms));
+  const hex = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
+  const mix = (a, b, t) => '#' + hex(a).map((v, i) => Math.round(v + (hex(b)[i] - v) * t).toString(16).padStart(2, '0')).join('');
+
+  /* ---------- state ---------- */
+  const SCEN = {
+    mild:     { base: 3, goal: 'Headache, 3 / 10. A non-opioid should be enough.' },
+    moderate: { base: 5, goal: 'Sprained ankle, 5 / 10. Swelling and inflammation are involved.' },
+    severe:   { base: 8, goal: 'After surgery, 8 / 10. Think about how strong each drug class can get.' }
+  };
+  const S = { k: 'severe', base: 8, o: 0, n: 0, a: 0, busy: false, note: null, sent: false };
+  const N = () => Math.min(4, 2 * S.n) / 4, O = () => Math.min(6, 3 * S.o) / 6, A = () => Math.min(3, 1.5 * S.a) / 3;
+  const strengths = () => { const s1 = 1 - .35 * N(), s2 = s1 * (1 - .9 * O()), s3 = s2 * (1 - .3 * A()); return { s1, s2, s3 }; };
+  const pain = () => S.base * strengths().s3;
+  const rr = () => S.o === 0 ? 16 : Math.max(0, 16 - 3 * S.o);
+  const sedation = () => ['Alert', 'Alert, slightly drowsy', 'Drowsy', 'Sedated', 'Hard to wake'][Math.min(S.o, 4)];
+
+  /* ---------- labels ---------- */
+  const labels = [[100, 366, 'Injury site'], [350, 352, 'Spinal cord'], [560, 214, 'Brain']];
+  labels.forEach(([x, y, t]) => {
+    const g = el('g', { class: 'lbl' }, $('labels'));
+    const r = el('rect', { rx: 12 }, g);
+    const tx = el('text', { x, y, 'text-anchor': 'middle', 'dominant-baseline': 'central' }, g); tx.textContent = t;
+    const b = tx.getBBox(); r.setAttribute('x', b.x - 10); r.setAttribute('y', b.y - 4); r.setAttribute('width', b.width + 20); r.setAttribute('height', b.height + 8);
+  });
+
+  /* ---------- patient: where the pain starts ---------- */
+  const SITE = {
+    mild:     { id: 'site-head',  label: 'Head',        pt: [548, 245], title: 'Patient: headache',
+                text: 'The pain is felt in the head. It comes from pain-sensitive structures such as scalp and neck muscles, blood vessels and the lining of the brain. Brain tissue itself cannot feel pain.' },
+    moderate: { id: 'site-ankle', label: 'Right ankle', pt: [540, 337], title: 'Patient: sprained right ankle',
+                text: 'Stretched or torn ligaments in the right ankle release prostaglandins. That causes pain and swelling, which is why an NSAID helps here.' },
+    severe:   { id: 'site-abd',   label: 'Abdomen',     pt: [548, 292], title: 'Patient: after abdominal surgery',
+                text: 'The pain comes from the surgical incision and the tissue that was cut or handled during the operation. Severe pain like this usually needs an opioid, ideally with a non-opioid.' }
+  };
+  const MOUTH = { 'No pain': 'M-4.5 18 Q0 22.5 4.5 18', 'Mild': 'M-4 19.5 L4 19.5', 'Moderate': 'M-4 20 Q0 17.5 4 20', 'Severe': 'M-5 21 Q0 15.5 5 21' };
+  const plG = el('g', { class: 'lbl' }, $('labels')), plR = el('rect', { rx: 12 }, plG);
+  const plT = el('text', { x: 548, y: 366, 'text-anchor': 'middle', 'dominant-baseline': 'central' }, plG);
+  function setSite(k){
+    const s = SITE[k];
+    Object.keys(SITE).forEach(i => { $(SITE[i].id).style.display = i === k ? '' : 'none'; });
+    plT.textContent = s.label;
+    const b = plT.getBBox(); plR.setAttribute('x', b.x - 10); plR.setAttribute('y', b.y - 4); plR.setAttribute('width', b.width + 20); plR.setAttribute('height', b.height + 8);
+    INFO.patient = [s.title, s.text];
+  }
+
+  /* ---------- effects helpers ---------- */
+  const fx = $('fx');
+  function ring(x, y, r, color){ const c = el('circle', { cx: x, cy: y, r, class: 'ringfx', stroke: color }, fx); setTimeout(() => c.remove(), 1000); }
+  let brainShown = 0, brainTok = 0;
+  function setBrain(v){
+    v = Math.max(0, Math.min(1, v)); const from = brainShown, tok = ++brainTok;
+    tw(450, p => { if (tok !== brainTok) return; brainShown = from + (v - from) * p; $('brain').style.setProperty('--bf', mix('#fbd6e0', '#f26b7c', brainShown)); });
+  }
+  function bubble(text, color){
+    const g = $('bubble'); g.style.display = ''; const t = $('bubT'); t.textContent = text; t.setAttribute('x', 560); t.setAttribute('y', 40);
+    let b = t.getBBox(); const half = b.width / 2 + 12, cx = Math.max(half + 6, Math.min(634 - half, 560));
+    if (cx !== 560) { t.setAttribute('x', cx); b = t.getBBox(); }
+    const r = $('bubR'); r.setAttribute('x', b.x - 10); r.setAttribute('y', b.y - 5); r.setAttribute('width', b.width + 20); r.setAttribute('height', b.height + 10); r.setAttribute('stroke', color || '#c2457a');
+    clearTimeout(bubble.t); bubble.t = setTimeout(() => { g.style.display = 'none'; }, 3200);
+  }
+  const DRUGCOL = { opi: '#d9468a', nsaid: '#3b6fd4', apap: '#f0a63a', nal: '#1f9d8f' };
+  async function fly(kind, tx, ty){
+    const g = el('g', {}, fx); el('use', { href: '#' + kind }, g);
+    const spin = kind === 'nsaid' || kind === 'apap'; let last = 0;
+    await tw(900, p => {
+      const e = ease(p), x = 320 + (tx - 320) * e, y = 372 + (ty - 372) * e - 50 * Math.sin(Math.PI * p);
+      g.setAttribute('transform', 'translate(' + x + ' ' + y + ') rotate(' + (spin ? 360 * e : 0) + ') scale(' + (1.25 - .25 * e) + ')');
+      const now = performance.now();
+      if (!reduce && now - last > 40) { last = now; const t = el('circle', { cx: x, cy: y, r: 4, fill: DRUGCOL[kind], class: 'tr' }, fx); fx.insertBefore(t, g); setTimeout(() => t.remove(), 480); }
+    });
+    g.remove();
+    burst(tx, ty, { n: 8, r0: 12, r1: 28, color: DRUGCOL[kind], w: 3 });
+  }
+  function along(c, path, ms, r0, r1, o0, o1){
+    const L = path.getTotalLength();
+    return tw(ms, p => { const pt = path.getPointAtLength(L * ease(p)); c.setAttribute('cx', pt.x); c.setAttribute('cy', pt.y);
+      c.setAttribute('r', r0 + (r1 - r0) * p); c.setAttribute('opacity', o0 + (o1 - o0) * p); });
+  }
+  const rad = p => 3 + 1.1 * p;
+
+  /* ---------- richer effects ---------- */
+  function burst(x, y, o){
+    if (reduce) return;
+    o = Object.assign({ n: 6, r0: 10, r1: 24, color: '#f0584f', w: 3, ms: 520 }, o);
+    const g = el('g', {}, fx), ls = [];
+    for (let i = 0; i < o.n; i++) { const a = i * Math.PI * 2 / o.n + .3; ls.push([el('line', { stroke: o.color, 'stroke-width': o.w, 'stroke-linecap': 'round' }, g), Math.cos(a), Math.sin(a)]); }
+    tw(o.ms, p => { const e = 1 - Math.pow(1 - p, 3), a0 = o.r0 + (o.r1 - o.r0) * e, a1 = a0 + (o.r1 - o.r0) * .5 * (1 - p);
+      ls.forEach(([l, c, s]) => { l.setAttribute('x1', x + c * a0); l.setAttribute('y1', y + s * a0); l.setAttribute('x2', x + c * a1); l.setAttribute('y2', y + s * a1); l.setAttribute('opacity', 1 - p); }); }).then(() => g.remove());
+  }
+  function sparkle(x, y, n, color, dist){
+    if (reduce) return;
+    for (let i = 0; i < n; i++) {
+      const a = i * Math.PI * 2 / n + Math.random() * .6, d = dist * (.7 + Math.random() * .5);
+      const st = el('path', { d: 'M0 -6 L1.8 -1.8 L6 0 L1.8 1.8 L0 6 L-1.8 1.8 L-6 0 L-1.8 -1.8Z', fill: color }, fx);
+      sleep(i * 50).then(() => tw(850, p => { const e = 1 - Math.pow(1 - p, 3);
+        st.setAttribute('transform', 'translate(' + (x + Math.cos(a) * d * e) + ' ' + (y + Math.sin(a) * d * e - 10 * p) + ') rotate(' + (p * 200) + ') scale(' + (1 - .5 * p) + ')');
+        st.setAttribute('opacity', 1 - p * p); })).then(() => st.remove());
+    }
+  }
+  function ripples(x, y, color){ for (let i = 0; i < 3; i++) setTimeout(() => ring(x, y, 24 + i * 6, color), reduce ? 0 : i * 170); }
+  function popEl(id){ const e = $(id); e.classList.remove('pop'); void e.getBoundingClientRect(); e.classList.add('pop'); }
+  function winceNow(p3){
+    const pb = $('pbody'); pb.classList.remove('wince'); void pb.getBoundingClientRect();
+    pb.style.setProperty('--w', Math.min(1.7, .5 + p3 / 6)); pb.classList.add('wince');
+  }
+  let painTok = 0;
+  function setPainNum(v){
+    const from = shownPain == null ? v : shownPain, tok = ++painTok;
+    tw(450, p => { if (tok !== painTok) return; shownPain = from + (v - from) * p; $('painNum').textContent = Math.round(shownPain) + ' / 10'; });
+  }
+  /* signal with a lit nerve and a comet trail */
+  function pulse(c, path, ms, r0, r1, o0, o1){
+    const L = path.getTotalLength(); let lit = null, last = 0;
+    if (!reduce) {
+      lit = el('path', { d: path.getAttribute('d'), fill: 'none', stroke: '#f0584f', 'stroke-width': 4, 'stroke-linecap': 'round', 'stroke-linejoin': 'round', opacity: .45, 'stroke-dasharray': L, 'stroke-dashoffset': L }, fx);
+      fx.insertBefore(lit, c);
+    }
+    return tw(ms, p => {
+      const e = ease(p), pt = path.getPointAtLength(L * e);
+      c.setAttribute('cx', pt.x); c.setAttribute('cy', pt.y); c.setAttribute('r', r0 + (r1 - r0) * p); c.setAttribute('opacity', o0 + (o1 - o0) * p);
+      if (lit) lit.setAttribute('stroke-dashoffset', L * (1 - e));
+      const now = performance.now();
+      if (!reduce && now - last > 35) { last = now; const t = el('circle', { cx: pt.x, cy: pt.y, r: (r0 + (r1 - r0) * p) * .85, fill: '#f0584f', class: 'tr' }, fx); fx.insertBefore(t, c); setTimeout(() => t.remove(), 480); }
+    }).then(() => { if (lit) { lit.style.transition = 'opacity .6s'; lit.setAttribute('opacity', 0); setTimeout(() => lit.remove(), 650); } });
+  }
+  /* the synapse: calcium in, vesicles fuse, transmitter crosses the gap */
+  const VES = [[270, 178], [292, 206], [256, 204]];
+  async function release(q, p2){
+    const blocked = p2 < 1.2, m = blocked ? 0 : Math.max(1, Math.round(3 * q));
+    const ca = [], nca = blocked ? 1 : Math.max(2, Math.round(5 * q));
+    for (let i = 0; i < nca; i++) ca.push(sleep(i * 70).then(() => {
+      const y0 = 172 + (i % 3) * 14 + (i % 2) * 4, stop = blocked ? 352 : 318, d = el('circle', { r: 2.8, fill: '#f0a63a', cx: 368, cy: y0 }, fx);
+      return tw(420, p => { const e = ease(p); d.setAttribute('cx', 368 + (stop - 368) * e); d.setAttribute('cy', y0 + (190 - y0) * e); d.setAttribute('opacity', blocked && p > .6 ? 1 - (p - .6) / .4 : 1); }).then(() => d.remove());
+    }));
+    await Promise.all(ca);
+    const vj = [], pj = [];
+    for (let i = 0; i < m; i++) {
+      const v = $('ves' + i), hx = VES[i][0], hy = VES[i][1], tx = 321, ty = 176 + i * 14;
+      vj.push(sleep(i * 90).then(async () => {
+        await tw(320, p => { const e = ease(p); v.setAttribute('cx', hx + (tx - hx) * e); v.setAttribute('cy', hy + (ty - hy) * e); });
+        for (let j = 0; j < 4; j++) pj.push(sleep(j * 45).then(() => {
+          const ty2 = 150 + ((i * 4 + j) % 5) * 20 + Math.random() * 8, dot = el('circle', { r: 2.8, fill: '#d9468a', cx: tx, cy: ty }, fx);
+          return tw(520, p => { const e = ease(p); dot.setAttribute('cx', tx + (364 - tx) * e); dot.setAttribute('cy', ty + (ty2 - ty) * e + Math.sin(p * Math.PI * 2) * 4); dot.setAttribute('opacity', p > .85 ? (1 - p) * 6.6 : 1); }).then(() => dot.remove());
+        }));
+        await tw(160, p => { v.setAttribute('r', 11 + 5 * p); v.setAttribute('opacity', 1 - p); });
+      }));
+    }
+    if (blocked) for (let j = 0; j < 2; j++) pj.push(sleep(j * 150).then(() => {
+      const dot = el('circle', { r: 2.8, fill: '#d9468a', cx: 337, cy: 190 + (j ? 8 : -8), opacity: .7 }, fx);
+      return tw(500, p => { dot.setAttribute('cx', 337 + 14 * ease(p)); dot.setAttribute('opacity', .7 * (1 - p)); }).then(() => dot.remove());
+    }));
+    await Promise.all(vj); await Promise.all(pj);
+    for (let i = 0; i < m; i++) { const v = $('ves' + i); v.setAttribute('cx', VES[i][0]); v.setAttribute('cy', VES[i][1]); v.setAttribute('r', 11); tw(550, p => v.setAttribute('opacity', p)); }
+    if (!blocked) {
+      const post = $('post'), col = mix('#e9eefb', '#ffb0bb', Math.min(1, p2 / 8));
+      ring(369, 190, 22, '#5b6bb0');
+      await tw(220, p => post.setAttribute('fill', mix('#e9eefb', col, p)));
+      tw(500, p => post.setAttribute('fill', mix(col, '#e9eefb', p)));
+    }
+  }
+
+  /* ---------- UI render ---------- */
+  function sev(p){ return p < 0.5 ? 'No pain' : p <= 3.5 ? 'Mild' : p <= 6.5 ? 'Moderate' : 'Severe'; }
+  let shownPain = null;
+  function render(){
+    const p = pain(), pr = Math.round(p);
+    setPainNum(pr); $('painBar').style.width = (p / 10 * 100) + '%'; $('painTxt').textContent = sev(p);
+    $('painBar').style.background = mix('#1f9d8f', '#d94a4a', Math.min(1, p / 8));
+    const pcol = p < .5 ? '#1f9d8f' : '#e8384f';
+    document.querySelectorAll('.pcol').forEach(e => e.setAttribute('fill', pcol));
+    document.querySelectorAll('.pmk').forEach(e => { e.style.display = p < .5 ? 'none' : ''; });
+    $('mouth').setAttribute('d', MOUTH[sev(p)]);
+    // breathing follows the respiratory rate; eyes follow sedation; skin goes blue-grey if breathing is dangerously slow
+    const rv = rr(), chest = $('chest');
+    if (rv <= 0) chest.style.animationPlayState = 'paused'; else { chest.style.animationPlayState = ''; chest.style.animationDuration = (60 / rv).toFixed(2) + 's'; }
+    const eye = [1, .75, .45, .15, .1][Math.min(S.o, 4)];
+    $('eyes').setAttribute('transform', 'translate(0 14) scale(1 ' + eye + ') translate(0 -14)');
+    document.querySelectorAll('.skin').forEach(e => e.setAttribute('fill', rv < 8 ? '#cdd6ee' : '#f6d3bd'));
+    const r = rr(); $('rrNum').textContent = r + ' / min'; $('rrBar').style.width = Math.min(100, r / 20 * 100) + '%';
+    const rp = $('rrPill'); rp.className = 'pill ' + (r >= 12 ? 'ok' : r >= 8 ? 'warn' : 'bad'); rp.textContent = r >= 12 ? 'Normal' : r >= 8 ? 'Low: hold dose' : 'Dangerous';
+    $('rrBar').style.background = r >= 12 ? '#1f9d8f' : r >= 8 ? '#f0a63a' : '#d94a4a';
+    $('sedTxt').textContent = 'Sedation: ' + sedation();
+    const st = Math.min(100, S.n * 34), sp = $('stPill'); sp.className = 'pill ' + (S.n === 0 ? 'ok' : S.n <= 1 ? 'ok' : S.n === 2 ? 'warn' : 'bad'); sp.textContent = S.n <= 1 ? 'Low' : S.n === 2 ? 'Moderate' : 'High';
+    $('stBar').style.width = st + '%'; $('stBar').style.background = S.n <= 1 ? '#1f9d8f' : S.n === 2 ? '#f0a63a' : '#d94a4a'; $('stNum').textContent = S.n * 400 + ' mg';
+    $('lvNum').textContent = S.a + ' g / 4 g'; $('lvBar').style.width = Math.min(100, S.a / 4 * 100) + '%';
+    const lp = $('lvPill'); lp.className = 'pill ' + (S.a <= 3 ? 'ok' : S.a === 4 ? 'warn' : 'bad'); lp.textContent = S.a <= 3 ? 'Safe' : S.a === 4 ? 'At the limit' : 'Over the limit';
+    $('lvBar').style.background = S.a <= 3 ? '#1f9d8f' : S.a === 4 ? '#f0a63a' : '#d94a4a';
+    $('cO').textContent = S.o; $('cN').textContent = S.n; $('cA').textContent = S.a;
+    // docked visuals
+    $('plug').style.display = S.n >= 1 ? '' : 'none'; $('plugN').textContent = S.n > 1 ? '×' + S.n : '';
+    $('dockO').style.display = S.o >= 1 ? '' : 'none'; $('opi1').style.display = S.o >= 1 ? '' : 'none'; $('opi2').style.display = S.o >= 2 ? '' : 'none';
+    $('opiN').textContent = S.o > 1 ? '×' + S.o : '';
+    $('halo').setAttribute('opacity', S.a >= 1 ? Math.min(.85, .3 + .2 * S.a) : 0); $('apapN').textContent = S.a > 1 ? '×' + S.a : '';
+    // buttons
+    const bz = S.busy;
+    ['send', 'gO', 'gN', 'gA'].forEach(i => $(i).disabled = bz); $('reset').disabled = bz;
+    $('gL').disabled = bz || S.o === 0;
+    $('nlNote').textContent = S.o === 0 ? 'Reverses opioids. Available once an opioid has been given.' : 'Reverses opioids at the μ receptor. Short-acting: keep monitoring.';
+    renderAlerts(p, r);
+  }
+  function renderAlerts(p, r){
+    const list = [], add = (c, m) => list.push([c, m]);
+    if (S.note) add('tip', S.note);
+    if (S.o > 0 && r < 12) add('bad', 'Respiratory rate ' + r + '/min is below 12. Hold the next opioid dose, call the prescriber and have naloxone ready.' + (r < 8 ? ' This is respiratory depression: give naloxone as ordered.' : ''));
+    if (S.o >= 2 && r >= 12) add('warn', 'Opioids cause constipation: start a bowel regimen and encourage fluids and fiber.');
+    if (S.n >= 1 && S.n <= 2) add('tip', 'NSAID given: give with food or milk. Watch for black stools and check BUN, creatinine and CBC.');
+    if (S.n >= 3) add('bad', 'High cumulative NSAID dose: GI bleeding and kidney injury risk rise. Stop and call the prescriber.');
+    if (S.a >= 1 && S.a <= 4) add('tip', 'Acetaminophen total today: ' + S.a + ' g of 4 g. Count every source, including combination products.');
+    if (S.a > 4) add('bad', 'Over the daily maximum. Liver injury risk: check AST, ALT and the acetaminophen level. Antidote: acetylcysteine, best within 8 hours.');
+    const classes = (S.o > 0) + (S.n > 0) + (S.a > 0);
+    if (classes >= 2 && p <= 3 && !list.some(x => x[0] === 'bad')) add('ok', 'Multimodal analgesia: drugs from different classes block the pathway at different points, so each can be used at a lower dose.');
+    const danger = list.some(x => x[0] === 'bad');
+    let g;
+    if (p <= 3.4 && !danger && (S.o + S.n + S.a) > 0) {
+      g = '<b>Goal met:</b> pain is ' + Math.round(p) + ' / 10 with no safety flags.' + (S.base <= 3 && S.o > 0 ? ' It worked, but an opioid is not needed for mild pain. Try a non-opioid first.' : '');
+    } else if (danger) g = '<b>Goal:</b> pain 3 or lower <b>and</b> no safety flags. Fix the red alert first.';
+    else if (S.base >= 7 && S.o === 0 && (S.n + S.a) > 0 && p > 3.4) g = '<b>Goal:</b> pain 3 or lower. Non-opioids have a ceiling for severe pain. Severe pain usually needs an opioid, ideally with a non-opioid.';
+    else g = '<b>Goal:</b> bring pain to 3 or lower with no safety flags. ' + SCEN[S.k].goal;
+    $('goal').innerHTML = g;
+    $('alerts').innerHTML = list.map(([c, m]) => '<div class="alert ' + c + '">' + m + '</div>').join('');
+  }
+
+  /* ---------- actions ---------- */
+  async function guard(fn){ if (S.busy) return; S.busy = true; render(); try { await fn(); } finally { S.busy = false; render(); } }
+
+  const send = () => guard(async () => {
+    S.note = null; S.sent = true; $('send').classList.remove('nudge');
+    const { s1, s2, s3 } = strengths(), b = S.base, p1 = b * s1, p2 = b * s2, p3 = b * s3, site = SITE[S.k].pt;
+    // the injury hurts: patient, tissue and the red crack all react
+    ring(85, 206, 20, '#f0584f'); ring(site[0], site[1], 14, '#f0584f'); burst(site[0], site[1], { n: 7, r0: 12, r1: 26 });
+    tw(260, p => $('zig').setAttribute('stroke-width', 4 + 4 * s1 * Math.sin(Math.PI * p)));
+    // prostaglandins spin up from the injury to the nerve ending
+    const k = Math.max(2, Math.round(6 * s1)), paths = ['pg1', 'pg2', 'pg3'];
+    const stars = [];
+    for (let i = 0; i < k; i++) {
+      const pa = $(paths[i % 3]), L = pa.getTotalLength(), g = el('g', { opacity: 0 }, fx); el('use', { href: '#pgs' }, g);
+      stars.push(sleep(i * 110).then(() => tw(700, p => { const pt = pa.getPointAtLength(L * ease(p));
+        g.setAttribute('transform', 'translate(' + (pt.x + Math.sin(p * 11 + i) * 2.5) + ' ' + pt.y + ') rotate(' + (p * 300) + ') scale(' + (.7 + .6 * Math.sin(Math.PI * p)) + ')');
+        g.setAttribute('opacity', p < .85 ? 1 : (1 - p) * 6); }).then(() => g.remove())));
+    }
+    await Promise.all(stars);
+    const bulbs = $('bulbs'); bulbs.setAttribute('fill', mix('#f2a7c0', '#f0584f', s1)); setTimeout(() => bulbs.setAttribute('fill', '#f2a7c0'), 700);
+    ring(104, 178, 14, '#f0584f');
+    // the signal runs up the nerve and lights it as it goes
+    const c = el('circle', { r: rad(p1), fill: '#f0584f', filter: 'url(#glow)', cx: 104, cy: 178 }, fx);
+    await pulse(c, $('pS1'), 1100, rad(p1), rad(p1), 1, 1);
+    await tw(220, p => { c.setAttribute('r', rad(p1) * (1 - p * .7)); c.setAttribute('opacity', 1 - p); });
+    c.remove();
+    // the synapse: how much transmitter crosses depends on the opioid
+    await release(s2 / s1, p2);
+    if (p2 < 1.2) {
+      const x = el('g', { class: 'pop' }, fx);
+      el('circle', { cx: 352, cy: 190, r: 14, fill: '#fff', stroke: '#d9468a', 'stroke-width': 3 }, x);
+      el('path', { d: 'M346 184 l12 12 M358 184 l-12 12', stroke: '#d9468a', 'stroke-width': 3.5, 'stroke-linecap': 'round' }, x);
+      setTimeout(() => x.remove(), 2200);
+      bubble('Signal blocked: no pain', '#1f9d8f'); setBrain(0);
+      sparkle(site[0], site[1] - 6, 7, '#1f9d8f', 30);
+      return;
+    }
+    const c2 = el('circle', { cx: 369, cy: 190, r: rad(p2), fill: '#f0584f', filter: 'url(#glow)', opacity: .5 + .5 * Math.min(1, p2 / 6) }, fx);
+    await pulse(c2, $('pS2'), 900, rad(p2), rad(p3), .5 + .5 * Math.min(1, p2 / 6), Math.max(.35, Math.min(1, p3 / 6)));
+    c2.remove();
+    // arrival: the brain registers it, and the patient feels it
+    setBrain(p3 / 8);
+    if (p3 >= 1) { $('brainWrap').classList.remove('throb'); void $('brainWrap').getBoundingClientRect(); $('brainWrap').classList.add('throb'); }
+    ripples(560, 118, p3 >= 1 ? '#f0584f' : '#1f9d8f');
+    bubble(p3 < 1 ? 'No pain felt' : 'Pain: ' + Math.round(p3) + ' / 10', p3 < 1 ? '#1f9d8f' : '#c2457a');
+    if (p3 >= 1) { winceNow(p3); burst(site[0], site[1], { n: Math.min(10, 5 + Math.round(p3)), r0: 12, r1: 22 + p3 * 2 }); ring(site[0], site[1], 18, '#f0584f'); }
+    else sparkle(site[0], site[1] - 6, 7, '#1f9d8f', 30);
+    setTimeout(() => setBrain(0), 2500);
+  });
+
+  const giveO = () => guard(async () => {
+    S.note = null;
+    const up = S.o % 2 === 0; await fly('opi', 333, up ? 162 : 218);
+    S.o++; ring(333, 190, 24, '#d9468a'); render(); if (S.o === 1) popEl('dockO');
+    S.note = 'Opioid bound μ receptors: the calcium channel closes and less transmitter is released. Pain falls, but so does breathing. Check respiratory rate and sedation.';
+  });
+  const giveN = () => guard(async () => {
+    S.note = null; await fly('nsaid', 85, 222);
+    S.n++; ring(85, 222, 22, '#3b6fd4'); render(); popEl('plug');
+    S.note = 'NSAID plugged COX: fewer prostaglandins, so the nerve ending fires less. There is a ceiling on how much it can help.';
+  });
+  const giveA = () => guard(async () => {
+    S.note = null; await fly('apap', 560, 118);
+    S.a++; ring(560, 118, 40, '#f0a63a'); ripples(560, 118, '#f0a63a'); render();
+    S.note = 'Acetaminophen acts mainly in the CNS (mechanism not fully understood). It spares the stomach and kidneys but the liver sets the daily limit.';
+  });
+  const giveL = () => guard(async () => {
+    S.note = null; await fly('nal', 333, 190);
+    ring(333, 190, 26, '#1f9d8f');
+    await tw(600, p => { ['opi1', 'opi2'].forEach((id, i) => { const g = $(id); g.setAttribute('transform', 'translate(' + (333 + 60 * p) + ' ' + ((i ? 218 : 162) + (i ? 40 : -40) * p) + ')'); g.setAttribute('opacity', 1 - p); }); });
+    S.o = 0; ['opi1', 'opi2'].forEach((id, i) => { const g = $(id); g.setAttribute('transform', 'translate(333 ' + (i ? 218 : 162) + ')'); g.setAttribute('opacity', 1); });
+    render();
+    S.note = 'Naloxone displaced the opioid: breathing recovers, but the pain returns. It wears off sooner than many opioids, so keep monitoring for sedation coming back.';
+  });
+
+  function resetAll(k){
+    if (S.busy) return;
+    S.k = k || S.k; S.base = SCEN[S.k].base; S.o = S.n = S.a = 0; S.note = null; S.sent = false; $('send').classList.add('nudge');
+    fx.innerHTML = ''; $('bubble').style.display = 'none'; setBrain(0);
+    document.querySelectorAll('#scen button').forEach(b => b.setAttribute('aria-pressed', b.dataset.k === S.k));
+    setSite(S.k);
+    render();
+  }
+
+  /* ---------- info hotspots ---------- */
+  const INFO = {
+    injury:  ['Injury site', 'Damaged cells release arachidonic acid. COX enzymes convert it into prostaglandins, which excite the pain nerve ending (nociceptor) and start the signal.'],
+    cox:     ['COX enzyme', 'Makes prostaglandins. NSAIDs such as ibuprofen and aspirin block it. COX-2 drives pain, inflammation and fever; COX-1 protects the stomach lining, platelets and kidney blood flow, which explains the side effects.'],
+    synapse: ['Spinal cord synapse', 'The synapse sits in the dorsal horn, the butterfly-shaped grey matter in the small cross-section (red dot). Calcium enters the terminal, vesicles release substance P and glutamate, and the next neuron fires. Opioids bind μ receptors here: calcium channels close, less transmitter is released and the next neuron fires less.'],
+    brain:   ['Brain', 'The thalamus relays the signal to the cortex, where it is perceived as pain. Opioids also act in the brain. Acetaminophen acts mainly in the central nervous system, and its exact mechanism is not fully understood.']
+  };
+  const POS = { injury: [28, 130], cox: [120, 222], synapse: [350, 120], brain: [612, 60], patient: [612, 252] };
+  function showInfo(k){ const [t, d] = INFO[k]; $('info').innerHTML = '<b>' + t + '</b>' + d; ring(POS[k][0], POS[k][1], 14, '#c2457a'); }
+  document.querySelectorAll('.hs').forEach(g => {
+    g.addEventListener('click', () => showInfo(g.dataset.k));
+    g.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); showInfo(g.dataset.k); } });
+  });
+
+  $('send').addEventListener('click', send);
+  $('gO').addEventListener('click', giveO); $('gN').addEventListener('click', giveN); $('gA').addEventListener('click', giveA); $('gL').addEventListener('click', giveL);
+  $('reset').addEventListener('click', () => resetAll());
+  document.querySelectorAll('#scen button').forEach(b => b.addEventListener('click', () => resetAll(b.dataset.k)));
+
+  resetAll('severe');
+})();
+</script>
+</body>
+</html>
